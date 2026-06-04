@@ -7,4 +7,5 @@ public interface StorageEngine {
     record ItemLookupResults(long seqNum, List<String> data) {}
 
     ItemLookupResults getItems(List<ItemLookup> itemLookups);
+    long getSeqNum();
 }

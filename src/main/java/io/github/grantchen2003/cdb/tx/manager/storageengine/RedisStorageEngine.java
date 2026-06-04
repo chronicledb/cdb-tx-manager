@@ -52,4 +52,9 @@ public class RedisStorageEngine implements StorageEngine {
 
         return new ItemLookupResults(seqNum, data);
     }
+
+    @Override
+    public long getSeqNum() {
+        return Long.parseLong((String) redisTemplate.opsForHash().get("metadata", "seq_num"));
+    }
 }

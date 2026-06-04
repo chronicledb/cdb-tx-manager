@@ -5,9 +5,12 @@ package cdb.tx.manager;
 option java_multiple_files = true;
 option java_package = "io.github.grantchen2003.cdb.tx.manager.grpc";
 
+import "google/protobuf/empty.proto";
+
 service TxManagerService {
   rpc CommitTransaction (CommitTransactionRequest) returns (CommitTransactionResponse);
   rpc GetItems(GetItemsRequest) returns (GetItemsResponse);
+  rpc GetSeqNum(google.protobuf.Empty) returns (GetSeqNumResponse);
 }
 
 message Operation {
@@ -54,4 +57,8 @@ message GetItemsRequest {
 message GetItemsResponse {
   uint64 seq_num = 1;
   repeated QueryResult results = 2;
+}
+
+message GetSeqNumResponse {
+  uint64 seq_num = 1;
 }

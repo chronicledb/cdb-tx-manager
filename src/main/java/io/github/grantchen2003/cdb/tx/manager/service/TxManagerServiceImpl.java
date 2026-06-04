@@ -7,6 +7,7 @@ import io.github.grantchen2003.cdb.tx.manager.grpc.CommitTransactionRequest;
 import io.github.grantchen2003.cdb.tx.manager.grpc.CommitTransactionResponse;
 import io.github.grantchen2003.cdb.tx.manager.grpc.GetItemsRequest;
 import io.github.grantchen2003.cdb.tx.manager.grpc.GetItemsResponse;
+import io.github.grantchen2003.cdb.tx.manager.grpc.GetSeqNumResponse;
 import io.github.grantchen2003.cdb.tx.manager.grpc.QueryResult;
 import io.github.grantchen2003.cdb.tx.manager.grpc.TxManagerServiceGrpc;
 import io.github.grantchen2003.cdb.tx.manager.storageengine.StorageEngine;
@@ -119,6 +120,15 @@ public class TxManagerServiceImpl extends TxManagerServiceGrpc.TxManagerServiceI
                 .forEach(responseBuilder::addResults);
 
         responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getSeqNum(com.google.protobuf.Empty request, StreamObserver<GetSeqNumResponse> responseObserver) {
+        final GetSeqNumResponse response = GetSeqNumResponse.newBuilder()
+                .setSeqNum(storageEngine.getSeqNum())
+                .build();
+        responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
 

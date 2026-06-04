@@ -5,6 +5,7 @@ import io.github.grantchen2003.cdb.tx.manager.grpc.CommitTransactionRequest;
 import io.github.grantchen2003.cdb.tx.manager.grpc.CommitTransactionResponse;
 import io.github.grantchen2003.cdb.tx.manager.grpc.GetItemsRequest;
 import io.github.grantchen2003.cdb.tx.manager.grpc.GetItemsResponse;
+import io.github.grantchen2003.cdb.tx.manager.grpc.GetSeqNumResponse;
 import io.github.grantchen2003.cdb.tx.manager.grpc.Operation;
 import io.github.grantchen2003.cdb.tx.manager.grpc.Query;
 import io.github.grantchen2003.cdb.tx.manager.storageengine.StorageEngine;
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -221,5 +223,54 @@ class TxManagerServiceImplTest {
 
         verify(getItemsObserverMock).onNext(argThat(r -> r.getSeqNum() == 42L));
         verify(getItemsObserverMock).onCompleted();
+    }
+
+    // -------------------------------------------------------------------------
+    // getSeqNum
+    // -------------------------------------------------------------------------
+
+    @Test
+    void getSeqNum_returnsSeqNumFromStorageEngine() {
+        StreamObserver<GetSeqNumResponse> getSeqNumObserverMock = mock(StreamObserver.class);
+        when(storageEngineMock.getSeqNum()).thenReturn(42L);
+
+        service.getSeqNum(com.google.protobuf.Empty.getDefaultInstance(), getSeqNumObserverMock);
+
+        verify(getSeqNumObserverMock).onNext(argThat(r -> r.getSeqNum() == 42L));
+        verify(getSeqNumObserverMock).onCompleted();
+    }
+
+    @Test
+    void getSeqNum_returnsZeroWhenSeqNumIsZero() {
+        StreamObserver<GetSeqNumResponse> getSeqNumObserverMock = mock(StreamObserver.class);
+        when(storageEngineMock.getSeqNum()).thenReturn(0L);
+
+        service.getSeqNum(com.google.protobuf.Empty.getDefaultInstance(), getSeqNumObserverMock);
+
+        verify(getSeqNumObserverMock).onNext(argThat(r -> r.getSeqNum() == 0L));
+        verify(getSeqNumObserverMock).onCompleted();
+    }
+
+    @Test
+    void getSeqNum_returnsLargeSeqNum() {
+        StreamObserver<GetSeqNumResponse> getSeqNumObserverMock = mock(StreamObserver.class);
+        when(storageEngineMock.getSeqNum()).thenReturn(Long.MAX_VALUE);
+
+        service.getSeqNum(com.google.protobuf.Empty.getDefaultInstance(), getSeqNumObserverMock);
+
+        verify(getSeqNumObserverMock).onNext(argThat(r -> r.getSeqNum() == Long.MAX_VALUE));
+        verify(getSeqNumObserverMock).onCompleted();
+    }
+
+    @Test
+    void getSeqNum_onlyCallsOnNextOnce() {
+        StreamObserver<GetSeqNumResponse> getSeqNumObserverMock = mock(StreamObserver.class);
+        when(storageEngineMock.getSeqNum()).thenReturn(7L);
+
+        service.getSeqNum(com.google.protobuf.Empty.getDefaultInstance(), getSeqNumObserverMock);
+
+        verify(getSeqNumObserverMock, times(1)).onNext(any());
+        verify(getSeqNumObserverMock, times(1)).onCompleted();
+        verify(getSeqNumObserverMock, never()).onError(any());
     }
 }
